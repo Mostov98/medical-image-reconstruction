@@ -111,9 +111,18 @@ if images_np is not None:
             print(f"Epoch {epoch + 1}/{EPOCHS}")
 
     print("✅ Training complete!")
+    
+    # ==========================================
+    # 4. SAVE MODEL WEIGHTS
+    # ==========================================
+    os.makedirs('models', exist_ok=True)
+    model_path = 'models/unet_model_weights.pth'
+    torch.save(model.state_dict(), model_path)
+    model_size = os.path.getsize(model_path) / (1024 * 1024)
+    print(f"✅ Model saved to {model_path} ({model_size:.2f} MB)")
 
     # ==========================================
-    # 4. VISUALIZE RESULTS
+    # 5. VISUALIZE RESULTS
     # ==========================================
     model.eval()
     num_show = len(dataset)
@@ -158,9 +167,11 @@ if images_np is not None:
                 axs[i, 4].set_title("Original (Ground Truth)")
 
     plt.tight_layout()
-    plt.savefig('results/reconstruction_results.png', dpi=100, bbox_inches='tight')
+    os.makedirs('results', exist_ok=True)
+    results_path = 'results/reconstruction_results.png'
+    plt.savefig(results_path, dpi=100, bbox_inches='tight')
     plt.show()
-    print("✅ Results saved to results/reconstruction_results.png")
+    print(f"✅ Results saved to {results_path}")
 
 else:
     print("❌ No images found! Check folder path and START/END indices")
