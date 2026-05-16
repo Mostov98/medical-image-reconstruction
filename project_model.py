@@ -36,12 +36,12 @@ class MedicalMultiFeatureDataset(Dataset):
         # Extract 3 edge detection features
         # 1. Canny edges
         canny = cv2.Canny(orig_u8, 50, 150) / 255.0
-        
+
         # 2. Sobel edges
         sobelx = cv2.Sobel(orig, cv2.CV_64F, 1, 0, ksize=3)
         sobely = cv2.Sobel(orig, cv2.CV_64F, 0, 1, ksize=3)
         sobel = np.clip(cv2.magnitude(sobelx, sobely), 0, 1)
-        
+
         # 3. Laplacian edges
         laplacian = np.clip(np.abs(cv2.Laplacian(orig, cv2.CV_64F)), 0, 1)
 
@@ -67,7 +67,7 @@ def load_specific_images(folder_path, start, end):
         if img is not None:
             # Normalize to 0-1 range
             all_images.append(cv2.resize(img, (256, 256)) / 255.0)
-    
+
     return np.array(all_images)
 
 
@@ -79,7 +79,7 @@ images_np = load_specific_images(folder_path, START_IMG, END_IMG)
 
 if images_np is not None:
     print(f"✅ Loaded {len(images_np)} images")
-    
+
     # Create dataset and dataloader
     dataset = MedicalMultiFeatureDataset(images_np)
     dataloader = DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=True)
@@ -91,7 +91,7 @@ if images_np is not None:
         classes=1,
         activation='sigmoid'
     )
-    
+
     # Optimizer and loss function
     optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
     criterion = nn.L1Loss()
@@ -106,23 +106,14 @@ if images_np is not None:
             loss = criterion(outputs, originals)
             loss.backward()
             optimizer.step()
-        
+
         if (epoch + 1) % 10 == 0:
             print(f"Epoch {epoch + 1}/{EPOCHS}")
 
     print("✅ Training complete!")
-    
-    # ==========================================
-    # 4. SAVE MODEL WEIGHTS
-    # ==========================================
-    os.makedirs('models', exist_ok=True)
-    model_path = 'models/unet_model_weights.pth'
-    torch.save(model.state_dict(), model_path)
-    model_size = os.path.getsize(model_path) / (1024 * 1024)
-    print(f"✅ Model saved to {model_path} ({model_size:.2f} MB)")
 
     # ==========================================
-    # 5. VISUALIZE RESULTS
+    # 4. VISUALIZE RESULTS
     # ==========================================
     model.eval()
     num_show = len(dataset)
@@ -167,11 +158,9 @@ if images_np is not None:
                 axs[i, 4].set_title("Original (Ground Truth)")
 
     plt.tight_layout()
-    os.makedirs('results', exist_ok=True)
-    results_path = 'results/reconstruction_results.png'
-    plt.savefig(results_path, dpi=100, bbox_inches='tight')
+    plt.savefig('results/reconstruction_results.png', dpi=100, bbox_inches='tight')
     plt.show()
-    print(f"✅ Results saved to {results_path}")
+    print("✅ Results saved to results/reconstruction_results.png")
 
 else:
     print("❌ No images found! Check folder path and START/END indices")
